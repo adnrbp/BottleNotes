@@ -1,12 +1,37 @@
 # -*- coding: utf-8 -*-
-from bottle_notes import app
+
+# bottle
+import json
 from bottle import request
 
-
-notes = [{'title': 'Example Note5', 'description': 'Just description'},
-        {'title': 'Example Note2', 'description': 'Just description2'},
-        {'title': 'Example Note3', 'description': 'Just description4'}]
+from bottle_notes import app
+from bottle_notes.notes.models import Note
 
 @app.route('/api/v1/notes', method='GET')
 def getAll():
-    return {'notes': notes}
+    """List all created notes."""
+    notes = []
+    for note in Note.select():
+        notes.append({
+            "title":note.title,
+            "description":note.description
+            })
+    return {'data': notes}
+
+@app.route('/api/v1/notes', method='POST')
+def addNote():
+    """Create a new note."""
+    result = {}
+    data =request.json
+    created_note = Note.create(**data)
+    if created_note.save() :
+        result = {
+            'result': "OK",
+            'data': data 
+        }
+    else:
+        result = {
+            'result': "error"
+        }
+    return result
+
